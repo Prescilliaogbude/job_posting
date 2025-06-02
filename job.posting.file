@@ -1,0 +1,73 @@
+from bs4 import BeautifulSoup
+import requests
+from datetime import datetime
+import time
+
+print('Put your skills (comma-separated):')
+familiar_skills_input = input('< ')
+familiar_skills = [skill.strip().lower() for skill in familiar_skills_input.split(',')]
+
+print('Put job titles (comma-separated):')
+job_title_input = input('< ')
+job_title_keywords = [title.strip().lower() for title in job_title_input.split(',')]
+
+print(f'\nFiltering for jobs that include skills: {", ".join(familiar_skills)} or titles: {", ".join(job_title_keywords)}\n')
+
+
+def scrape_timesjobs(base_url, search_keyword, max_pages=5):
+    page = 1
+    while page <= max_pages:
+        url = f"{base_url}&txtKeywords={search_keyword}&_fPage={page}"
+        print(f"\nScraping page: {page} -> {url}")
+
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'lxml')
+        jobs = soup.find_all('li', class_='clearfix job-bx wht-shd-bx')
+
+        if not jobs:
+            print("No more jobs found.")
+            break
+
+        for job in jobs:
+            job_title_element = job.find('h2', class_='heading-trun')
+            company_name_element = job.find('h3', class_='joblist-comp-name')
+            skills_element = job.find('div', class_='srp-skills')
+            salary_element = job.find('li', class_='srp-icons salary')
+            posted_date_element = job.find('span', class_='sim-posted')
+            more_info_element = job.header.h2.a if job.header and job.header.h2 and job.header.h2.a else None
+
+            title = job_title_element.text.strip().lower() if job_title_element else "N/A"
+            company_name = company_name_element.text.strip() if company_name_element else "N/A"
+            salary = salary_element.text.strip() if salary_element else "N/A"
+            date_posted = posted_date_element.text.strip() if posted_date_element else "N/A"
+            more_info = more_info_element['href'] if more_info_element else "No link available"
+
+            if skills_element:
+                job_skills_raw = skills_element.text.strip().lower()
+                job_skills = [skill.strip() for skill in job_skills_raw.split()]
+                skills_text = ', '.join(job_skills)
+
+                if any(skill in job_skills for skill in familiar_skills) or any(jt in title for jt in job_title_keywords):
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    print(f"\n[Timestamp: {timestamp}]")
+                    print(f"Job Title: {title}")
+                    print(f"Company: {company_name}")
+                    print(f"Skills: {skills_text}")
+                    print(f"Salary: {salary}")
+                    print(f"Date Posted: {date_posted}")
+                    print(f"More Info: {more_info}")
+                    print('---')
+        page += 1
+        time.sleep(1)
+
+
+base_url_python = "https://www.timesjobs.com/candidate/job-search.html?searchType=personalizedSearch&from=submit&txtLocation="
+scrape_timesjobs(base_url_python, familiar_skills[0] if familiar_skills else '')
+
+
+base_url_data = "https://www.timesjobs.com/candidate/job-search.html?searchType=personalizedSearch&from=submit&txtLocation="
+scrape_timesjobs(base_url_data, "data")
+
+print("\nJob search complete.")
+
+
