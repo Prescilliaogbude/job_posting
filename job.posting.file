@@ -3,6 +3,8 @@ import requests
 from datetime import datetime
 import time
 
+
+
 print('Put your skills (comma-separated):')
 familiar_skills_input = input('< ')
 familiar_skills = [skill.strip().lower() for skill in familiar_skills_input.split(',')]
