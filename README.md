@@ -54,7 +54,6 @@ Put your skills (comma-separated):
 
 Put job titles (comma-separated):
 < data analyst, developer
-Let me know if you'd like to turn this into a GUI app, a web app, or export results to a CSV or Excel file!
 
 
 
